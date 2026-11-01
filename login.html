@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Table & Bloom — Sign In</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fdf2f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .box {
+      background: white;
+      padding: 35px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+    }
+    h1 { color: #7b2d5e; margin-bottom: 5px; }
+    p.tagline { color: #888; margin-top: 0; margin-bottom: 25px; font-size: 14px; }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 18px;
+      background: #7b2d5e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover { background: #631f4a; }
+    .toggle {
+      margin-top: 18px;
+      font-size: 14px;
+      color: #7b2d5e;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      min-height: 18px;
+    }
+    .error { color: #c0392b; }
+    .success { color: #27ae60; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h1>🌸 Table & Bloom</h1>
+    <p class="tagline" id="formTagline">Welcome back. Sign in to continue.</p>
+
+    <input type="email" id="email" placeholder="Email address" required>
+    <input type="password" id="password" placeholder="Password" required>
+
+    <button id="actionBtn">Sign In</button>
+
+    <p class="toggle" id="toggleLink">New here? Create an account</p>
+    <p id="status"></p>
+  </div>
+
+  <script type="module">
+    import { auth } from "./firebase-config.js";
+    import {
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+    let isSignUpMode = false; // starts in "Sign In" mode
+
+    const actionBtn = document.getElementById("actionBtn");
+    const toggleLink = document.getElementById("toggleLink");
+    const formTagline = document.getElementById("formTagline");
+    const status = document.getElementById("status");
+
+    // Switch between "Sign In" and "Create Account" modes
+    toggleLink.addEventListener("click", () => {
+      isSignUpMode = !isSignUpMode;
+      if (isSignUpMode) {
+        actionBtn.textContent = "Create Account";
+        formTagline.textContent = "Let's get you started.";
+        toggleLink.textContent = "Already have an account? Sign in";
+      } else {
+        actionBtn.textContent = "Sign In";
+        formTagline.textContent = "Welcome back. Sign in to continue.";
+        toggleLink.textContent = "New here? Create an account";
+      }
+      status.textContent = "";
+    });
+
+    actionBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        status.textContent = "Please fill in both fields.";
+        status.className = "error";
+        return;
+      }
+
+      status.textContent = "Please wait...";
+      status.className = "";
+
+      try {
+        if (isSignUpMode) {
+          // Create a brand new account
+          await createUserWithEmailAndPassword(auth, email, password);
+          status.textContent = "✅ Account created! Redirecting...";
+          status.className = "success";
+        } else {
+          // Log in to an existing account
+          await signInWithEmailAndPassword(auth, email, password);
+          status.textContent = "✅ Signed in! Redirecting...";
+          status.className = "success";
+        }
+
+        // Send her to the diary after a brief pause
+        setTimeout(() => {
+          window.location.href = "diary1.html";
+        }, 1000);
+
+      } catch (error) {
+        status.className = "error";
+        // Translate Firebase's technical errors into human language
+        if (error.code === "auth/email-already-in-use") {
+          status.textContent = "That email already has an account. Try signing in instead.";
+        } else if (error.code === "auth/weak-password") {
+          status.textContent = "Password must be at least 6 characters.";
+        } else if (error.code === "auth/invalid-email") {
+          status.textContent = "Please enter a valid email address.";
+        } else if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
+          status.textContent = "Incorrect email or password.";
+        } else if (error.code === "auth/user-not-found") {
+          status.textContent = "No account found with that email. Try creating one.";
+        } else {
+          status.textContent = "Something went wrong: " + error.message;
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
