@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table & Bloom — Daily Diary</title>
+<style>
+:root {
+--wine: #6b2737;
+--wine-light: #8c3a4d;
+--wine-pale: #f5e6e8;
+--text-dark: #2b2b2b;
+--cream: #faf7f5;
+}
+{ box-sizing: border-box; }
+body {
+font-family: 'Segoe UI', Arial, sans-serif;
+background: var(--cream);
+color: var(--text-dark);
+margin: 0;
+padding: 20px;
+}
+.container {
+max-width: 600px;
+margin: 0 auto;
+}
+h1 {
+color: var(--wine);
+text-align: center;
+font-size: 1.6em;
+margin-bottom: 5px;
+}
+.subtitle {
+text-align: center;
+color: #777;
+margin-bottom: 25px;
+font-size: 0.9em;
+}
+.card {
+background: white;
+border-radius: 12px;
+padding: 20px;
+margin-bottom: 20px;
+box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.card h2 {
+color: var(--wine);
+font-size: 1.1em;
+margin-top: 0;
+border-bottom: 2px solid var(--wine-pale);
+padding-bottom: 8px;
+}
+label {
+display: block;
+margin: 10px 0 5px;
+font-weight: 600;
+font-size: 0.95em;
+}
+input[type="text"], input[type="time"], select, textarea {
+width: 100%;
+padding: 10px;
+border: 1px solid #ddd;
+border-radius: 8px;
+font-size: 1em;
+}
+textarea { resize: vertical; min-height: 60px; }
+.symptom-grid {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 8px;
+margin-top: 10px;
+}
+.symptom-item {
+display: flex;
+align-items: center;
+background: var(--wine-pale);
+padding: 8px 10px;
+border-radius: 8px;
+font-size: 0.9em;
+}
+.symptom-item input { margin-right: 8px; width: auto; }
+button {
+width: 100%;
+background: var(--wine);
+color: white;
+border: none;
+padding: 14px;
+border-radius: 10px;
+font-size: 1.05em;
+font-weight: 600;
+cursor: pointer;
+margin-top: 10px;
+}
+button:hover { background: var(--wine-light); }
+.entries {
+margin-top: 30px;
+}
+.entry {
+background: white;
+border-left: 4px solid var(--wine);
+padding: 14px;
+border-radius: 8px;
+margin-bottom: 12px;
+box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.entry-header {
+display: flex;
+justify-content: space-between;
+font-size: 0.85em;
+color: #888;
+margin-bottom: 6px;
+}
+.entry-food {
+font-weight: 600;
+margin-bottom: 4px;
+}
+.entry-symptoms {
+font-size: 0.9em;
+color: var(--wine);
+}
+.entry-notes {
+font-size: 0.88em;
+color: #555;
+margin-top: 6px;
+font-style: italic;
+}
+.delete-btn {
+background: none;
+border: none;
+color: #aaa;
+font-size: 0.8em;
+cursor: pointer;
+width: auto;
+padding: 0;
+margin: 0;
+}
+.empty-state {
+text-align: center;
+color: #999;
+padding: 20px;
+font-size: 0.9em;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🌸 Daily Diary</h1>
+<p class="subtitle">Track meals & symptoms to spot your patterns</p>
+<div class="card">
+<h2>New Entry</h2>
+<label for="mealType">Meal Type</label>
+<select id="mealType">
+<option value="Breakfast">Breakfast</option>
+<option value="Lunch">Lunch</option>
+<option value="Dinner">Dinner</option>
+<option value="Snack">Snack</option>
+</select>
+<label for="foodInput">What did you eat?</label>
+<input type="text" id="foodInput" placeholder="e.g. Grilled chicken, rice, spinach">
+<label>Symptoms (check all that apply)</label>
+<div class="symptom-grid">
+<div class="symptom-item"><input type="checkbox" value="Bloating"> Bloating</div>
+<div class="symptom-item"><input type="checkbox" value="Fatigue"> Fatigue</div>
+<div class="symptom-item"><input type="checkbox" value="Headache"> Headache</div>
+<div class="symptom-item"><input type="checkbox" value="Nausea"> Nausea</div>
+<div class="symptom-item"><input type="checkbox" value="Joint Pain"> Joint Pain</div>
+<div class="symptom-item"><input type="checkbox" value="Skin Irritation"> Skin Irritation</div>
+<div class="symptom-item"><input type="checkbox" value="Mood Changes"> Mood Changes</div>
+<div class="symptom-item"><input type="checkbox" value="None"> None</div>
+</div>
+<label for="notesInput">Notes (optional)</label>
+<textarea id="notesInput" placeholder="Anything else you noticed..."></textarea>
+<button onclick="saveEntry()">Save Entry</button>
+</div>
+<div class="entries">
+<h2 style="color:var(--wine); font-size:1.1em;">Your Entries</h2>
+<div id="entryList"></div>
+</div>
+</div>
+<script>
+function loadEntries() {
+const entries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
+const list = document.getElementById('entryList');
+list.innerHTML = '';
+if (entries.length === 0) {
+list.innerHTML = '<div class="empty-state">No entries yet. Log your first meal above! 🍽️</div>';
+return;
+}
+entries.slice().reverse().forEach((entry, reverseIndex) => {
+const index = entries.length - 1 - reverseIndex;
+const div = document.createElement('div');
+div.className = 'entry';
+div.innerHTML = `
+<div class="entry-header">
+<span>${entry.mealType} — ${entry.date}</span>
+<button class="delete-btn" onclick="deleteEntry(${index})">✕ delete</button>
+</div>
+<div class="entry-food">🍽️ ${entry.food}</div>
+<div class="entry-symptoms">⚠️ ${entry.symptoms.length ? entry.symptoms.join(', ') : 'No symptoms logged'}</div>
+${entry.notes ? `<div class="entry-notes">"${entry.notes}"</div>` : ''}
+`;
+list.appendChild(div);
+});
+}
+function saveEntry() {
+const mealType = document.getElementById('mealType').value;
+const food = document.getElementById('foodInput').value.trim();
+const notes = document.getElementById('notesInput').value.trim();
+const checkboxes = document.querySelectorAll('.symptom-item input[type="checkbox"]:checked');
+const symptoms = Array.from(checkboxes).map(cb => cb.value);
+if (!food) {
+alert('Please enter what you ate before saving.');
+return;
+}
+const entry = {
+date: new Date().toLocaleString(),
+mealType: mealType,
+food: food,
+symptoms: symptoms,
+notes: notes
+};
+const entries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
+entries.push(entry);
+localStorage.setItem('diaryEntries', JSON.stringify(entries));
+document.getElementById('foodInput').value = '';
+document.getElementById('notesInput').value = '';
+document.querySelectorAll('.symptom-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+loadEntries();
+}
+function deleteEntry(index) {
+const entries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
+entries.splice(index, 1);
+localStorage.setItem('diaryEntries', JSON.stringify(entries));
+loadEntries();
+}
+loadEntries();
+</script>
+</body>
+</html>
