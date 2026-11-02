@@ -1,1 +1,8 @@
-// Import Firebase SDKs directly from Google's CDN (no npm needed) import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"; import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"; import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"; // Your web app's Firebase configuration const firebaseConfig = { apiKey: "AIzaSyDZ9vZGfCr_OE9eVck21kl3vtg48Pr1Lkk", authDomain: "table-and-bloom-app.firebaseapp.com", projectId: "table-and-bloom-app", storageBucket: "table-and-bloom-app.firebasestorage.app", messagingSenderId: "391926840624", appId: "1:391926840624:web:22190a1a53214903605cf5" }; // Initialize Firebase const app = initializeApp(firebaseConfig); // Initialize services we'll use across the app const auth = getAuth(app); const db = getFirestore(app); // Export so other files (login.html, diary1.html) can use them export { auth, db };
+// Import Firebase SDKs directly from Google's CDN (no npm needed) 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"; 
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"; 
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js"; 
+// Your web app's Firebase configuration const firebaseConfig = { apiKey: "AIzaSyDZ9vZGfCr_OE9eVck21kl3vtg48Pr1Lkk", authDomain: "table-and-bloom-app.firebaseapp.com", projectId: "table-and-bloom-app", storageBucket: "table-and-bloom-app.firebasestorage.app", messagingSenderId: "391926840624", appId: "1:391926840624:web:22190a1a53214903605cf5" };
+// Initialize Firebase const app = initializeApp(firebaseConfig); 
+// Initialize services we'll use across the app const auth = getAuth(app); const db = getFirestore(app); 
+// Export so other files (login.html, diary1.html) can use them export { auth, db };
