@@ -79,7 +79,9 @@
   </div>
 
   <script type="module">
-    import { auth } from "./firebase-config.js?v=2";
+    import { auth, db } from "./firebase-config.js"; 
+    import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"; 
+    import { doc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import {
       createUserWithEmailAndPassword,
       signInWithEmailAndPassword
