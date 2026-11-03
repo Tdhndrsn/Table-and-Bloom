@@ -83,8 +83,43 @@
     import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"; 
     import { doc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import {
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword
+      async function signUpUser(email, password) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    await setDoc(doc(db, "users", user.uid), {
+      email: user.email,
+      displayName: "",
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp()
+    });
+
+    console.log("User profile created successfully:", user.uid);
+
+    window.location.href = "diary1.html";
+
+  } catch (error) {
+    console.error("Signup error:", error.code, error.message);
+    alert("Signup failed: " + error.message);
+  }
+ },
+     async function signInUser(email, password) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    await updateDoc(doc(db, "users", user.uid), {
+      lastLogin: serverTimestamp()
+    });
+
+    window.location.href = "diary1.html";
+
+  } catch (error) {
+    console.error("Sign-in error:", error.code, error.message);
+    alert("Sign-in failed: " + error.message);
+  }
+}
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
     let isSignUpMode = false; // starts in "Sign In" mode
