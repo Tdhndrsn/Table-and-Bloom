@@ -177,63 +177,108 @@ font-size: 0.9em;
 <div id="entryList"></div>
 </div>
 </div>
-<script>
-function loadEntries() {
-const entries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
-const list = document.getElementById('entryList');
-list.innerHTML = '';
-if (entries.length === 0) {
-list.innerHTML = '<div class="empty-state">No entries yet. Log your first meal above! 🍽️</div>';
-return;
-}
-entries.slice().reverse().forEach((entry, reverseIndex) => {
-const index = entries.length - 1 - reverseIndex;
-const div = document.createElement('div');
-div.className = 'entry';
-div.innerHTML = `
-<div class="entry-header">
-<span>${entry.mealType} — ${entry.date}</span>
-<button class="delete-btn" onclick="deleteEntry(${index})">✕ delete</button>
-</div>
-<div class="entry-food">🍽️ ${entry.food}</div>
-<div class="entry-symptoms">⚠️ ${entry.symptoms.length ? entry.symptoms.join(', ') : 'No symptoms logged'}</div>
-${entry.notes ? `<div class="entry-notes">"${entry.notes}"</div>` : ''}
-`;
-list.appendChild(div);
-});
-}
-function saveEntry() {
-const mealType = document.getElementById('mealType').value;
-const food = document.getElementById('foodInput').value.trim();
-const notes = document.getElementById('notesInput').value.trim();
-const checkboxes = document.querySelectorAll('.symptom-item input[type="checkbox"]:checked');
-const symptoms = Array.from(checkboxes).map(cb => cb.value);
-if (!food) {
-alert('Please enter what you ate before saving.');
-return;
-}
-const entry = {
-date: new Date().toLocaleString(),
-mealType: mealType,
-food: food,
-symptoms: symptoms,
-notes: notes
-};
-const entries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
-entries.push(entry);
-localStorage.setItem('diaryEntries', JSON.stringify(entries));
-document.getElementById('foodInput').value = '';
-document.getElementById('notesInput').value = '';
-document.querySelectorAll('.symptom-item input[type="checkbox"]').forEach(cb => cb.checked = false);
-loadEntries();
-}
-function deleteEntry(index) {
-const entries = JSON.parse(localStorage.getItem('diaryEntries') || '[]');
-entries.splice(index, 1);
-localStorage.setItem('diaryEntries', JSON.stringify(entries));
-loadEntries();
-}
-loadEntries();
+<script type="module">
+  import { auth, db } from "./firebase-config.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import {
+    collection, addDoc, deleteDoc, doc,
+    query, where, orderBy, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  let currentUser = null;
+
+  // Wait until we know WHO is logged in before doing anything else
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadEntries(); // only start listening for entries once we have a confirmed user
+    } else {
+      // Nobody is logged in — send them back to login
+      window.location.href = "login.html";
+    }
+  });
+
+  // Live-listens for entries belonging to THIS user, ordered newest first
+  function loadEntries() {
+    const q = query(
+      collection(db, "diary_entries"),
+      where("uid", "==", currentUser.uid),
+      orderBy("createdAt", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+      const list = document.getElementById('entryList');
+      list.innerHTML = '';
+
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-state">No entries yet. Log your first meal above! 🍽️</div>';
+        return;
+      }
+
+      snapshot.forEach((docSnap) => {
+        const entry = docSnap.data();
+        const entryId = docSnap.id;
+
+        const div = document.createElement('div');
+        div.className = 'entry';
+        div.innerHTML = `
+          <div class="entry-header">
+            <span>${entry.mealType} — ${entry.date}</span>
+            <button class="delete-btn" onclick="deleteEntry('${entryId}')">✕ delete</button>
+          </div>
+          <div class="entry-food">🍽️ ${entry.food}</div>
+          <div class="entry-symptoms">⚠️ ${entry.symptoms.length ? entry.symptoms.join(', ') : 'No symptoms logged'}</div>
+          ${entry.notes ? `<div class="entry-notes">"${entry.notes}"</div>` : ''}
+        `;
+        list.appendChild(div);
+      });
+    });
+  }
+
+  // Save a new entry to Firestore (attached to this.uid)
+  window.saveEntry = async function () {
+    const mealType = document.getElementById('mealType').value;
+    const food = document.getElementById('foodInput').value.trim();
+    const notes = document.getElementById('notesInput').value.trim();
+    const checkboxes = document.querySelectorAll('.symptom-item input[type="checkbox"]:checked');
+    const symptoms = Array.from(checkboxes).map(cb => cb.value);
+
+    if (!food) {
+      alert('Please enter what you ate before saving.');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "diary_entries"), {
+        uid: currentUser.uid,
+        date: new Date().toLocaleString(),
+        mealType: mealType,
+        food: food,
+        symptoms: symptoms,
+        notes: notes,
+        createdAt: serverTimestamp()
+      });
+
+      // Clear the form after a successful save
+      document.getElementById('foodInput').value = '';
+      document.getElementById('notesInput').value = '';
+      document.querySelectorAll('.symptom-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    } catch (error) {
+      console.error("Error saving entry:", error);
+      alert("Something went wrong saving your entry: " + error.message);
+    }
+  };
+
+  // Delete an entry from Firestore
+  window.deleteEntry = async function (entryId) {
+    try {
+      await deleteDoc(doc(db, "diary_entries", entryId));
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      alert("Something went wrong deleting that entry: " + error.message);
+    }
+  };
 </script>
 </body>
 </html>
