@@ -103,6 +103,19 @@
   button:hover {
     background-color: #b5673f;
   }
+  .btn-support {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 30px;
+  background-color: #C97B54;
+  color: white;
+  text-decoration: none;
+  font-size: 1em;
+}
+
+.btn-support:hover {
+  background-color: #b5673f;
+}
 
   footer {
     text-align: center;
@@ -110,10 +123,85 @@
     font-size: 0.9em;
     color: #8a7568;
   }
+  .welcome-bar {
+  background-color: #FFF8F0;
+  text-align: center;
+  padding: 40px 20px 20px 20px;
+  border-bottom: 1px solid #E8B4A0;
+}
+
+.welcome-bar h2 {
+  color: #C97B54;
+  font-size: 1.8em;
+  font-weight: normal;
+  margin-bottom: 15px;
+}
+
+.welcome-bar .mission-text {
+  max-width: 650px;
+  margin: 0 auto;
+  font-size: 1.05em;
+  color: #3B2A22;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.home-social {
+  text-align: center;
+  padding: 40px 20px 20px 20px;
+}
+
+.home-social h3 {
+  color: #C97B54;
+  font-weight: normal;
+  margin-bottom: 12px;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 2em;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.social-note {
+  font-size: 0.85em;
+  color: #8a7568;
+}
 </style>
 </head>
-<body>
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "firebase/auth";
+  import { doc, getDoc } from "firebase/firestore";
+  import { db } from "./firebase-config.js"; // adjust path to match your project
 
+  const auth = getAuth();
+
+  onAuthStateChanged(auth, async (user) => {
+    const greetingEl = document.getElementById("homeGreeting");
+    if (user) {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const firstName = userSnap.exists() ? userSnap.data().firstName : "sis";
+      greetingEl.textContent = `Welcome back, ${firstName} 🌸`;
+    } else {
+      greetingEl.textContent = `Welcome, sis 🌸`;
+    }
+  });
+</script>
+<body>
+<section class="welcome-bar">
+  <h2 id="homeGreeting">Welcome back 🌸</h2>
+  <p class="mission-text">
+    Table & Bloom is a wellness space for Black women — built around food,
+    herbs, and community, not rules or restriction. This is the table where
+    we gather: to log what we eat, learn what our ancestors knew about herbs
+    and healing, and find each other across cities and zip codes. No shame,
+    no scorekeeping. Just honest care, one day at a time — and your own
+    blooming season, held gently.
+  </p>
+</section>
   <section class="hero">
     <h1>🌸 Table & Bloom</h1>
     <p class="tagline">A warm food & wellness diary for Black women blooming through menopause.</p>
@@ -135,14 +223,19 @@
   </section>
 
   <section class="signup">
-    <h2>Join the First Bloom</h2>
-    <p>Be the first to know when Table & Bloom opens its doors.</p>
-    <form>
-      <input type="email" placeholder="Your email address" required>
-      <button type="submit">Join Early Access</button>
-    </form>
-  </section>
-
+  <h2>Help Us Keep Growing 🌱</h2>
+  <p>Table & Bloom is sustained by women like you. If this space has held you, fed you, or taught you something — consider planting a seed of your own.</p>
+  <a href="support.html" class="btn-support">Support the Bloom 🌸</a>
+</section>
+<section class="home-social">
+  <h3>Find Us Soon On</h3>
+  <div class="social-icons">
+    <span class="icon-placeholder" title="Facebook — coming soon">📘</span>
+    <span class="icon-placeholder" title="Instagram — coming soon">📸</span>
+    <span class="icon-placeholder" title="TikTok — coming soon">🎵</span>
+  </div>
+  <p class="social-note">We're setting up our community spaces now — check back soon.</p>
+</section>
   <footer>
     &copy; 2026 Table & Bloom. Made with warmth for us.
   </footer>
