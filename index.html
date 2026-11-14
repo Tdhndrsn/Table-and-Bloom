@@ -170,6 +170,56 @@
   font-size: 0.85em;
   color: #8a7568;
 }
+/* Bottom Footer Navigation /
+.footer-nav {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+display: flex;
+justify-content: space-around;
+align-items: center;
+background: #FFF8F3;
+border-top: 1px solid #E8B4A0;
+box-shadow: 0 -4px 12px rgba(201, 123, 84, 0.15);
+padding: 8px 4px;
+z-index: 1000;
+}
+.nav-item {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+text-decoration: none;
+color: #8A6552;
+font-size: 11px;
+font-weight: 600;
+padding: 6px 14px;
+border-radius: 16px;
+transition: all 0.2s ease;
+min-width: 64px;
+}
+.nav-item .nav-icon {
+font-size: 26px;
+margin-bottom: 2px;
+transition: transform 0.2s ease;
+}
+.nav-item.active {
+background: linear-gradient(135deg, #C97B54, #E8B4A0);
+color: #FFFFFF;
+box-shadow: 0 4px 10px rgba(201, 123, 84, 0.4);
+}
+.nav-item.active .nav-icon {
+transform: scale(1.1);
+}
+.nav-item:not(.active):hover {
+background: #F3DCCB;
+color: #C97B54;
+}
+/* Prevent content from hiding behind the fixed bar /
+body {
+padding-bottom: 80px;
+}
 </style>
 </head>
 <script type="module">
@@ -239,6 +289,39 @@
   <footer>
     &copy; 2026 Table & Bloom. Made with warmth for us.
   </footer>
-
+<!-- Footer Navigation -->
+<nav class="footer-nav">
+  <a href="index.html" class="nav-item" id="nav-home">
+    <span class="nav-icon">🏠</span>
+    <span>Home</span>
+  </a>
+  <a href="diary1.html" class="nav-item" id="nav-diary">
+    <span class="nav-icon">📓</span>
+    <span>Food Diary</span>
+  </a>
+  <a href="resources.html" class="nav-item" id="nav-resources">
+    <span class="nav-icon">🌿</span>
+    <span>Resources</span>
+  </a>
+  <a href="support.html" class="nav-item" id="nav-support">
+    <span class="nav-icon">💛</span>
+    <span>Support</span>
+  </a>
+</nav>
+<script>
+  // Auto-highlight the active footer nav tab
+  const currentPage = window.location.pathname.split("/").pop();
+  const navMap = {
+    "index.html": "nav-home",
+    "": "nav-home", // handles root URL with no filename
+    "diary1.html": "nav-diary",
+    "resources.html": "nav-resources",
+    "support.html": "nav-support"
+  };
+  const activeId = navMap[currentPage];
+  if (activeId) {
+    document.getElementById(activeId).classList.add("active");
+  }
+</script>
 </body>
 </html>
